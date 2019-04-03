@@ -1,0 +1,42 @@
+<!-- 
+Programming Project#1
+	Author: Xiang Lin(xxl180009)
+	Date: March 01, 2019
+	Description: Create a Library management application for retrieveing, modify data with mysql database.
+    File Description: new borrower interface.
+ -->
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Sign Up A New Borrower</title>
+	
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="index.css">
+	<script src="index.js"></script>
+
+</head>
+<body>
+	
+		<h1>Sign Up A New Borrower</h1>
+	
+	<div class ="search-container">
+		<form >
+                <Label>Name: </Label>
+                <input id= "Bname" type="text" placeholder = "Jacob">
+                <Label>SSN: </Label>
+				<input class="required-input" id="Bssn" type="text" name="ssn" placeholder="123-45-6789"> 
+                <Label>Address: </Label>
+                <input id= "Baddress" type="text"placeholder = "9999 90th Avenue, Dallas, TX">
+                <Label>Phone: </Label>
+				<input id= "Bphone" type="text" placeholder = "1234567899" >
+				<input id="BSignup" type="button" value="Sign Up">
+				<input id ="BReturnToMain" type = "button" value = "Return">
+		</form>
+		<p id = "Bmessage"></p>
+	</div>
+	
+	<div id = "table-container">
+	</div>
+
+</body>
+</html> 

@@ -1,0 +1,79 @@
+<!-- 
+Programming Project#1
+	Author: Xiang Lin(xxl180009)
+	Date: March 01, 2019
+	Description: Create a Library management application for retrieveing, modify data with mysql database.
+    File Description: fine page to get the fine information and update the page.
+ -->
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Fine Management</title>
+	
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="index.css">
+    <script src="index.js"></script>
+    
+    <script>
+        $(document).ready(function(){
+            
+            //click the return button to return to index.html
+            $("#fineToIndex").click(function(){
+                location.href = "index.html";
+            });
+            
+            //handle ajax call here,
+            //Print out the table of current fine
+            $.ajax({  
+                url: 'updateFine.php', 
+                success: function(response) {
+                   $("#fine-table").append(response);
+                },error:function(xhr){alert(xhr.responseText)}
+            });
+
+            $("#updateFine").click(function(){
+                window.location.reload();
+            });
+
+            $("#finePay").click(function(){
+                var cardId = $("#finePerson").val();
+
+                $("#fine-table").children().remove();
+                $("#fineMessage").remove();
+                $.ajax({
+                type: 'GET', 
+                url: 'updateFine.php', 
+                data: {cardId: cardId },
+                success: function(response) {
+                   $("#fine-table").append(response);
+                },error:function(xhr){alert(xhr.responseText)}
+            });
+
+            });
+
+
+        });
+    </script>
+
+</head>
+<body>
+	
+		<h1>Fine Management</h1>
+	
+	<div class ="search-container">
+		<form >
+                <Label>Enter Card id to pay the loan: </Label>
+				<input id= "finePerson" type="text" placeholder = "Enter Card id to pay the fine:" >
+                <input id="finePay" type="button" value="Pay fine">
+                <input id="fineToIndex" type="button" value="Return">
+		</form>
+		<p id = "fineMessage"></p>
+    </div>
+    <button id= "updateFine" type = "button">Update Fine</button>
+    <p>Current fine table in the system.</p>
+	<div id = "fine-table">
+        
+	</div>
+
+</body>
+</html> 

@@ -1,0 +1,51 @@
+<!-- 
+Programming Project#1
+	Author: Xiang Lin(xxl180009)
+	Date: March 01, 2019
+	Description: Create a Library management application for retrieveing, modify data with mysql database.
+    File Description: Main page interface.
+ -->
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Library Management System</title>
+	
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="index.css">
+	<script src="index.js"></script>
+
+</head>
+<body>
+	
+		<h1>Library Management System</h1>
+	
+	<div class ="search-container">
+		<form>
+				<input id= "entry" type="text" placeholder = "Search Book title, Author name, or ISBN here...">
+				<input id="search" type="button" value="Search">
+				<input id ="newBorrowerBtn" type = "button" value ="Add New Borrower">
+				<input id ="fineBtn" type = "button" value ="Manage Fines">
+
+		</form>
+		<p id = "message"></p>
+	</div>
+
+	<div class ="checkout-container">
+		<form >
+				<Label>Book Title: </Label>
+                <input id= "checkoutTitle" type="text" placeholder = "Brave New World" readonly>
+                <Label>Book ISBN: </Label>
+                <input id= "checkoutISBN" type="text" placeholder = "0001047973"  readonly>
+                <Label><b>Enter Borrower Card id: </b></Label>
+				<input class="required-input" id="checkoutBid" type="text" name="ssn" placeholder="996" > 
+				<input id="checkOutSignup" type="button" value="Check Out">
+				<input id="checkOutCancel" type="button" value="Cancel">
+		</form>
+		<p id = "checkmessage"></p>
+	</div>
+	
+	<div id = "table-container">
+	</div>
+
+</body>
+</html> 

@@ -1,0 +1,206 @@
+#
+# Programming Project#1
+# 	Author: Xiang Lin(xxl180009)
+# 	Date: March 01, 2019
+# 	Description: Create a Library management application for retrieveing, modify data with mysql database.
+#     File Description: initialize the database, the process will take about 8 minutes. Please be patient.
+
+
+
+CREATE DATABASE LIBRARY;
+
+USE LIBRARY;
+
+#CREATE INIT BORROWERS TABLE.
+CREATE TABLE BORROWERS_RAW(
+  borrower_id INT NOT NULL AUTO_INCREMENT,
+  ssn VARCHAR(11) NOT NULL,
+  first_name VARCHAR(50) NOT NULL,
+  last_name VARCHAR(50) NOT NULL,
+  email VARCHAR(62) NOT NULL,
+  address VARCHAR(95) NOT NULL,
+  city VARCHAR(35) NOT NULL,
+  state CHAR(2) NOT NULL,
+  phone VARCHAR(14) NOT NULL,
+  PRIMARY KEY (borrower_id)
+);
+#LOAD DATA INTO BORROWER TABLE FROM RAW CSV DATA.
+LOAD DATA LOCAL INFILE '/Users/xianglin/Documents/CS6360-Database/Programming project#1/borrowers.csv'
+INTO TABLE BORROWERS_RAW
+FIELDS TERMINATED BY ','
+LINES TERMINATED BY '\n'
+IGNORE 1 LINES;
+#CREATE INIT BOOKS TABLE.
+CREATE TABLE BOOKS_RAW(
+  ISBN10 CHAR(10) NOT NULL,
+  ISBN13 CHAR(13) NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  author VARCHAR(255) NOT NULL,
+  cover VARCHAR(125) NOT NULL,
+  publisher VARCHAR(62) NOT NULL,
+  pages INT NOT NULL,
+  PRIMARY KEY (ISBN10)
+);
+
+#LOAD DATA INTO BOOK TABLE FROM RAW CSV DATA.
+LOAD DATA LOCAL INFILE '/Users/xianglin/Documents/CS6360-Database/Programming project#1/books.csv'
+INTO TABLE BOOKS_RAW
+FIELDS TERMINATED BY '\t'
+LINES TERMINATED BY '\n'
+IGNORE 1 LINES;
+
+##########CREATE NEW TABLE SCHEMA###################
+#CREATE NEW BOOK TABLE IN ACTUAL SCHEMA--primary key is set
+CREATE TABLE BOOK(
+  Isbn CHAR(10) NOT NULL,
+  Title VARCHAR(255) NOT NULL,
+  PRIMARY KEY (Isbn)
+);
+
+#CREATE NEW AUTHOR TABLE IN ACTUAL SCHEMA--PRIMARY KEY IS SET
+CREATE TABLE AUTHORS(
+  Author_id INT NOT NULL AUTO_INCREMENT,
+  Name VARCHAR(100) NOT NULL,
+  PRIMARY KEY (Author_id)
+);
+
+
+#CREATE NEW BOOK_AUTHORS TABLE--FOREIGN KEYS ARE NOT SET，PRIMARY KEY IS ALSO NOT SET
+CREATE TABLE BOOK_AUTHORS(
+  Isbn CHAR(10) NOT NULL,
+  Author_id INT NOT NULL
+);
+
+#CREATE BORROWER TABLE
+CREATE TABLE BORROWER(
+  Card_id INT NOT NULL,
+  Ssn VARCHAR(11) NOT NULL,
+  Bname VARCHAR(100) NOT NULL,
+  Address VARCHAR(150) NOT NULL,
+  Phone VARCHAR(14) NOT NULL,
+  PRIMARY KEY (Card_id)
+);
+
+#CREATE BOOK_LOANS TABLE--FOREIGN KEYS ARE NOT SET
+CREATE TABLE BOOK_LOANS(
+  Loan_id INT NOT NULL AUTO_INCREMENT,
+  Isbn CHAR(10) NOT NULL,
+  Card_id INT NOT NULL,
+  Date_out DATE NOT NULL,
+  Due_date DATE NOT NULL,
+  Date_in DATE,
+  PRIMARY KEY(Loan_id)
+);
+
+#CREATE FINES TABLE
+CREATE TABLE FINES(
+  Loan_id INT NOT NULL,
+  Fine_amt DECIMAL(7,2),
+  Paid TINYINT(1),
+  PRIMARY KEY (Loan_id)
+);
+
+#####################################################
+#INSERT DATA INTO BOOK SCHEMA
+#BOOK TABLE GENERATED SUCCESSFULLY!!!!!!!!!!!!!!
+INSERT INTO BOOK (Isbn, Title)
+SELECT ISBN10, title
+FROM BOOKS_RAW;
+
+#CREATE A TEMPORARY TABLE FOR AUTHOR MAPPING
+CREATE TABLE AUTHOR_names_Temp(
+  Author_id_tmp INT NOT NULL AUTO_INCREMENT,
+  Name_tmp VARCHAR(100) NOT NULL,
+  PRIMARY KEY (Author_id_tmp)
+);
+
+#INSERT RAW AUTHOR DATA INTO TMP TABLE
+INSERT INTO AUTHOR_names_Temp (Name_tmp)
+SELECT author
+FROM BOOKS_RAW;
+
+#JOIN THE BOOKS RAW TABLE INTO TEMP TABLE
+#INSERT DISTINCT AUTHOR NAMES INTO THE ACTUAL AUTHOR TABLE:
+#AUTHOR TABLE GENERATED SUCCESSFULLY!!!!!!!!!!!!!!
+INSERT INTO AUTHORS (Name)
+SELECT distinct SUBSTRING_INDEX(
+         substring_index(author, ',', Author_id_tmp),
+         ',', -1
+         ) as name
+from BOOKS_RAW
+join AUTHOR_names_Temp
+  ON CHAR_LENGTH(author)
+      - CHAR_LENGTH(replace(author,',',''))
+>= Author_id_tmp-1;
+
+#CREATE A TEMPORARY TABLE FOR BOOK_AUTHOR MAPPING
+CREATE TABLE BOOK_AUTHOR_Temp(
+  Author_id_TMP INT NOT NULL AUTO_INCREMENT,
+  Isbn_tmp CHAR(10) NOT NULL,
+  Name_tmp VARCHAR(100) NOT NULL,
+  PRIMARY KEY (Author_id_TMP)
+);
+
+
+
+#INSERT DATA INTO BOOK_AUTHOR_TEMP
+INSERT INTO BOOK_AUTHOR_Temp (ISBN_TMP, NAME_TMP)
+SELECT ISBN10,
+       SUBSTRING_INDEX(
+         substring_index(author, ',', Author_id_tmp),
+         ',', -1
+         ) as name
+from BOOKS_RAW
+join AUTHOR_names_Temp
+  ON CHAR_LENGTH(author)
+      - CHAR_LENGTH(replace(author,',',''))
+>= Author_id_tmp-1;
+
+#MAPPING THE ACTUAL DATA INTO BOOK_AUTHOR TABLE
+#BOOK_AUTHORS TABLE IS GENERATED!!!!!!!!!!!!!!!!!!!!!!!!!
+INSERT INTO BOOK_AUTHORS (Isbn, Author_id)
+SELECT Isbn_tmp, Authors.Author_id
+FROM BOOK_AUTHOR_Temp
+  LEFT JOIN AUTHORS
+    ON BOOK_AUTHOR_Temp.Name_tmp = AUTHORS.Name
+GROUP BY Isbn_tmp, Author_id;
+
+#BORROWER TABLE IS GENERATED SUCCESSFULLY!!!!!!!!!!!!!!!!!!!!!!!!
+INSERT INTO BORROWER(Card_id, ssn, Bname, address, phone)
+SELECT borrower_id,
+       ssn,
+       CONCAT(first_name, ' ', last_name) AS Bname,
+       CONCAT(address, ', ', city, ', ', state) AS Address,
+       phone
+FROM BORROWERS_RAW;
+
+#ADD FOREIGN KEYS FOR TABLES: BOOK_AUTHORS, BOOK_LOANS, AND FINES
+ALTER TABLE BOOK_AUTHORS
+ADD FOREIGN KEY (Isbn) REFERENCES BOOK(Isbn);
+
+ALTER TABLE BOOK_AUTHORS
+ADD FOREIGN KEY (Author_id) REFERENCES AUTHORS(Author_id);
+
+ALTER TABLE BOOK_LOANS
+ADD FOREIGN KEY (Isbn) REFERENCES BOOK(Isbn);
+
+ALTER TABLE BOOK_LOANS
+ADD FOREIGN KEY (Card_id) REFERENCES BORROWER(Card_id);
+
+ALTER TABLE FINES
+ADD FOREIGN KEY (Loan_id) REFERENCES BOOK_LOANS(Loan_id);
+
+#Add composite primary key to table BOOK_AUTHORS
+ALTER TABLE BOOK_AUTHORS
+ADD PRIMARY KEY (Isbn,Author_id);
+
+#Finished importing and mapping data
+##############################################
+#DROP TEMP TABLES:
+  DROP TABLE AUTHOR_names_Temp;
+  DROP TABLE BOOK_AUTHOR_Temp;
+  DROP TABLE BOOKS_RAW;
+  DROP TABLE BORROWERS_RAW;
+
+###################DATA PROCESSING FINISHED############################
+show tables;
